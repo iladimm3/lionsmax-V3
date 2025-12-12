@@ -1,0 +1,71 @@
+# WordPress
+wp-config.php
+wp-config-local.php
+.htaccess
+wp-content/uploads/
+wp-content/backup-*
+wp-content/cache/
+wp-content/backups/
+wp-content/upgrade/
+wp-content/updraft/
+
+# Plugins & Themes (but track custom ones)
+/wp-content/plugins/*
+!/wp-content/plugins/lionsmax-custom/
+!/wp-content/plugins/mu-plugins/
+/wp-content/themes/*
+!/wp-content/themes/lionsmax-theme/
+
+# Database
+db.php
+*.sql
+*.sql.gz
+
+# System files
+.DS_Store
+Thumbs.db
+.env
+.env.local
+.env.production.local
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# Node modules & build
+node_modules/
+dist/
+build/
+npm-debug.log
+yarn-error.log
+
+# Package managers
+composer.lock
+vendor/
+
+# Logs & Cache
+*.log
+.cache/
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+
+# N8N related
+.n8n/
+n8n-data/
+
+# Docker
+.docker/
+.dockerignore
+
+# Local development
+.local/
+local-config.php
