@@ -1,0 +1,48 @@
+name: Deploy to Hostinger via FTP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Sync files to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: ./public_html/
+          state-name: .ftp-deploy-sync-state.json
+          exclude: |
+            **/.git*
+            **/.gitignore
+            **/node_modules
+            **/wp-config.php
+            **/wp-config-local.php
+            **/wp-content/uploads/**
+            **/.env*
+            **/.vscode/
+            **/tests/
+            **/README.md
+            **/SETUP.md
+            **/*.log
+            **/Thumbs.db
+            **/.DS_Store
+            
+      - name: Notify deployment status
+        if: always()
+        run: |
+          echo "Deployment to Hostinger completed at $(date)"
+          echo "Branch: main"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
