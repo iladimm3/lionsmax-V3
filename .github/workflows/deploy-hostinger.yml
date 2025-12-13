@@ -13,14 +13,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Build if Node project present
+        run: |
+          if [ -f package.json ]; then
+            echo "Found package.json — installing and building..."
+            npm ci
+            npm run build
+            echo "LOCAL_DIR=./dist" >> $GITHUB_ENV
+          else
+            echo "No package.json found — deploying repository root"
+            echo "LOCAL_DIR=./" >> $GITHUB_ENV
+          fi
+
       - name: Sync files to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./
+          local-dir: ${{ env.LOCAL_DIR }}
           server-dir: ./public_html/
           state-name: .ftp-deploy-sync-state.json
           exclude: |
@@ -38,7 +54,15 @@ jobs:
             **/*.log
             **/Thumbs.db
             **/.DS_Store
-            
+
+      - name: Post-deploy healthcheck
+        run: |
+          echo "Running post-deploy healthcheck for https://lionsmax.com/..."
+          if ! curl -fsS https://lionsmax.com/ > /dev/null; then
+            echo "Healthcheck failed: https://lionsmax.com/ returned non-2xx"
+            exit 1
+          fi
+
       - name: Notify deployment status
         if: always()
         run: |
