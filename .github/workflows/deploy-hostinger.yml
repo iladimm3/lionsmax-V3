@@ -70,3 +70,28 @@ jobs:
           echo "Branch: main"
           echo "Commit: ${{ github.sha }}"
           echo "Author: ${{ github.actor }}"
+
+      - name: Collect CI artifacts
+        if: always()
+        run: |
+          mkdir -p ci-artifacts
+          # collect ftp-deploy state if present
+          if [ -f .ftp-deploy-sync-state.json ]; then
+            cp .ftp-deploy-sync-state.json ci-artifacts/
+          fi
+          # collect any log files in repo
+          find . -type f -name "*.log" -maxdepth 4 -print0 | xargs -0 -r -I{} cp --parents {} ci-artifacts/ || true
+          # capture basic env and git info
+          echo "GITHUB_RUN_ID=${GITHUB_RUN_ID}" > ci-artifacts/runner-info.txt || true
+          echo "GITHUB_SHA=${GITHUB_SHA:-${{ github.sha }}}" >> ci-artifacts/runner-info.txt || true
+          git --no-pager log -1 --pretty=format:"%H %ci %s" > ci-artifacts/last-commit.txt || true
+          # compress artifacts
+          cd ci-artifacts && zip -r ../ci-artifacts-${{ github.run_id }}.zip . || true
+          ls -la .. | sed -n '1,200p' || true
+
+      - name: Upload CI artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-artifacts-${{ github.run_id }}
+          path: ci-artifacts-${{ github.run_id }}.zip
